@@ -140,6 +140,7 @@
     let longitude = "";
     let map;
     let marker;
+    let accuracyCircle;
 
     function getLocation() {
       document.getElementById("location").innerText = "Getting location...";
@@ -163,15 +164,16 @@
     function showPosition(position) {
       latitude = position.coords.latitude;
       longitude = position.coords.longitude;
+      let accuracy = position.coords.accuracy || 30;
 
-      document.getElementById("location").innerText = 
+      document.getElementById("location").innerText =
         `Latitude: ${latitude.toFixed(6)}\nLongitude: ${longitude.toFixed(6)}`;
       document.getElementById("copyBtn").style.display = "inline-block";
       document.getElementById("shareBtn").style.display = "inline-block";
       document.getElementById("googleMapsBtn").style.display = "inline-block";
       document.getElementById("googleEarthBtn").style.display = "inline-block";
       document.getElementById("mapContainer").style.display = "block";
-      showMap(latitude, longitude);
+      showMap(latitude, longitude, accuracy);
     }
 
     function showError(error) {
@@ -208,7 +210,8 @@
     }
 
     function shareLocation() {
-      const message = `My current location:\nLatitude: ${latitude}\nLongitude: ${longitude}`;
+      const mapsLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
+      const message = `My current location:\nLatitude: ${latitude}\nLongitude: ${longitude}\nGoogle Maps: ${mapsLink}`;
       const phone = "7611132681"; // Replace with your WhatsApp number
       const link = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
       window.open(link, "_blank");
@@ -226,18 +229,35 @@
       window.open(url, "_blank");
     }
 
-    function showMap(lat, lng) {
+    function showMap(lat, lng, accuracy = 30) {
       if (!map) {
         map = L.map('map').setView([lat, lng], 16);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           maxZoom: 19,
           attribution: '© OpenStreetMap'
         }).addTo(map);
-        marker = L.marker([lat, lng]).addTo(map);
       } else {
         map.setView([lat, lng], 16);
-        marker.setLatLng([lat, lng]);
       }
+
+      // Remove previous marker and circle if they exist
+      if (marker) {
+        map.removeLayer(marker);
+      }
+      if (accuracyCircle) {
+        map.removeLayer(accuracyCircle);
+      }
+
+      // Add marker at current location
+      marker = L.marker([lat, lng]).addTo(map);
+
+      // Add accuracy circle
+      accuracyCircle = L.circle([lat, lng], {
+        color: '#2563eb',
+        fillColor: '#60a5fa',
+        fillOpacity: 0.2,
+        radius: accuracy // meters
+      }).addTo(map);
     }
   </script>
 </body>
