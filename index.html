@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>Accurate GPS Location</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Leaflet CSS for map -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <style>
     body {
@@ -18,7 +17,6 @@
       align-items: center;
       justify-content: flex-start;
     }
-
     nav {
       width: 100%;
       background: linear-gradient(90deg, #2563eb 0%, #60a5fa 100%);
@@ -34,7 +32,6 @@
       left: 0;
       z-index: 100;
     }
-
     .container {
       margin-top: 90px;
       width: 100%;
@@ -48,7 +45,6 @@
       align-items: center;
       gap: 18px;
     }
-
     h1 {
       color: #2563eb;
       font-size: 1.6rem;
@@ -56,7 +52,6 @@
       margin-bottom: 10px;
       text-align: center;
     }
-
     #location {
       font-size: 1.1rem;
       color: #333;
@@ -65,7 +60,6 @@
       margin-bottom: 6px;
       transition: color 0.2s;
     }
-
     .map-container {
       width: 100%;
       height: 220px;
@@ -75,7 +69,6 @@
       margin: 10px 0 0 0;
       display: none;
     }
-
     .buttons-container {
       display: flex;
       flex-wrap: wrap;
@@ -84,7 +77,6 @@
       margin-top: 12px;
       width: 100%;
     }
-
     button {
       background: linear-gradient(90deg, #2563eb 0%, #60a5fa 100%);
       border: none;
@@ -98,18 +90,15 @@
       box-shadow: 0 2px 8px rgba(60,80,180,0.07);
       min-width: 140px;
     }
-
     button:hover:not(:disabled) {
       background: linear-gradient(90deg, #1d4ed8 0%, #38bdf8 100%);
       box-shadow: 0 4px 16px rgba(60,80,180,0.13);
     }
-
     button:disabled {
       background: #cbd5e1;
       color: #888;
       cursor: not-allowed;
     }
-
     .copy-success {
       color: #22c55e;
       font-size: 0.98rem;
@@ -117,7 +106,6 @@
       min-height: 18px;
       transition: opacity 0.3s;
     }
-
     @media (max-width: 600px) {
       .container {
         padding: 22px 7vw 18px 7vw;
@@ -134,19 +122,18 @@
   <div class="container">
     <h1>Find & Share Your GPS Coordinates</h1>
     <button id="getLocationBtn" onclick="getLocation()">Get My Location</button>
-    <div id="location">Waiting for location...</div>
+    <div id="location">Click the button to get your location</div>
     <div class="map-container" id="mapContainer">
       <div id="map" style="width:100%; height:100%;"></div>
     </div>
     <div class="buttons-container">
       <button id="copyBtn" style="display:none;" onclick="copyCoords()">Copy Coordinates</button>
       <button id="shareBtn" style="display:none;" onclick="shareLocation()">Share on WhatsApp</button>
+      <button id="googleMapsBtn" style="display:none;" onclick="openGoogleMapsSatellite()">Open in Google Maps (Satellite View)</button>
       <button id="googleEarthBtn" style="display:none;" onclick="openGoogleEarth()">Open in Google Earth</button>
     </div>
     <div class="copy-success" id="copySuccess"></div>
   </div>
-
-  <!-- Leaflet JS for map -->
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
     let latitude = "";
@@ -158,6 +145,7 @@
       document.getElementById("location").innerText = "Getting location...";
       document.getElementById("copyBtn").style.display = "none";
       document.getElementById("shareBtn").style.display = "none";
+      document.getElementById("googleMapsBtn").style.display = "none";
       document.getElementById("googleEarthBtn").style.display = "none";
       document.getElementById("copySuccess").innerText = "";
       document.getElementById("mapContainer").style.display = "none";
@@ -180,6 +168,7 @@
         `Latitude: ${latitude.toFixed(6)}\nLongitude: ${longitude.toFixed(6)}`;
       document.getElementById("copyBtn").style.display = "inline-block";
       document.getElementById("shareBtn").style.display = "inline-block";
+      document.getElementById("googleMapsBtn").style.display = "inline-block";
       document.getElementById("googleEarthBtn").style.display = "inline-block";
       document.getElementById("mapContainer").style.display = "block";
       showMap(latitude, longitude);
@@ -205,6 +194,7 @@
       document.getElementById("location").innerText = message;
       document.getElementById("copyBtn").style.display = "none";
       document.getElementById("shareBtn").style.display = "none";
+      document.getElementById("googleMapsBtn").style.display = "none";
       document.getElementById("googleEarthBtn").style.display = "none";
       document.getElementById("mapContainer").style.display = "none";
     }
@@ -224,7 +214,14 @@
       window.open(link, "_blank");
     }
 
+    function openGoogleMapsSatellite() {
+      // Open in Google Maps with satellite view and zoom level 18
+      const url = `https://www.google.com/maps/@?api=1&map_action=map&basemap=satellite&center=${latitude},${longitude}&zoom=18`;
+      window.open(url, "_blank");
+    }
+
     function openGoogleEarth() {
+      // Open in Google Earth at the location
       const url = `https://earth.google.com/web/@${latitude},${longitude},1000a,0h,0p,0r`;
       window.open(url, "_blank");
     }
