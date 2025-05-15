@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Accurate GPS Location</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Leaflet CSS for map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #e0e7ff 0%, #f0f4f8 100%);
+      color: #222;
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    nav {
+      width: 100%;
+      background: linear-gradient(90deg, #2563eb 0%, #60a5fa 100%);
+      color: #fff;
+      font-weight: 700;
+      font-size: 1.5rem;
+      text-align: center;
+      padding: 22px 0 18px 0;
+      letter-spacing: 1px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 100;
+    }
+
+    .container {
+      margin-top: 90px;
+      width: 100%;
+      max-width: 420px;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 6px 32px rgba(60,80,180,0.08);
+      padding: 36px 28px 28px 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+    }
+
+    h1 {
+      color: #2563eb;
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    #location {
+      font-size: 1.1rem;
+      color: #333;
+      min-height: 44px;
+      text-align: center;
+      margin-bottom: 6px;
+      transition: color 0.2s;
+    }
+
+    .map-container {
+      width: 100%;
+      height: 220px;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      margin: 10px 0 0 0;
+      display: none;
+    }
+
+    .buttons-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 14px;
+      margin-top: 12px;
+      width: 100%;
+    }
+
+    button {
+      background: linear-gradient(90deg, #2563eb 0%, #60a5fa 100%);
+      border: none;
+      color: #fff;
+      padding: 12px 18px;
+      font-size: 1rem;
+      border-radius: 7px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.2s, box-shadow 0.2s;
+      box-shadow: 0 2px 8px rgba(60,80,180,0.07);
+      min-width: 140px;
+    }
+
+    button:hover:not(:disabled) {
+      background: linear-gradient(90deg, #1d4ed8 0%, #38bdf8 100%);
+      box-shadow: 0 4px 16px rgba(60,80,180,0.13);
+    }
+
+    button:disabled {
+      background: #cbd5e1;
+      color: #888;
+      cursor: not-allowed;
+    }
+
+    .copy-success {
+      color: #22c55e;
+      font-size: 0.98rem;
+      margin-top: 2px;
+      min-height: 18px;
+      transition: opacity 0.3s;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 22px 7vw 18px 7vw;
+        margin-top: 78px;
+      }
+      .map-container {
+        height: 160px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav>Accurate GPS Location</nav>
+  <div class="container">
+    <h1>Find & Share Your GPS Coordinates</h1>
+    <button id="getLocationBtn" onclick="getLocation()">Get My Location</button>
+    <div id="location">Waiting for location...</div>
+    <div class="map-container" id="mapContainer">
+      <div id="map" style="width:100%; height:100%;"></div>
+    </div>
+    <div class="buttons-container">
+      <button id="copyBtn" style="display:none;" onclick="copyCoords()">Copy Coordinates</button>
+      <button id="shareBtn" style="display:none;" onclick="shareLocation()">Share on WhatsApp</button>
+      <button id="googleEarthBtn" style="display:none;" onclick="openGoogleEarth()">Open in Google Earth</button>
+    </div>
+    <div class="copy-success" id="copySuccess"></div>
+  </div>
+
+  <!-- Leaflet JS for map -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    let latitude = "";
+    let longitude = "";
+    let map;
+    let marker;
+
+    function getLocation() {
+      document.getElementById("location").innerText = "Getting location...";
+      document.getElementById("copyBtn").style.display = "none";
+      document.getElementById("shareBtn").style.display = "none";
+      document.getElementById("googleEarthBtn").style.display = "none";
+      document.getElementById("copySuccess").innerText = "";
+      document.getElementById("mapContainer").style.display = "none";
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(showPosition, showError, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        });
+      } else {
+        document.getElementById("location").innerText = "Geolocation is not supported by your browser.";
+      }
+    }
+
+    function showPosition(position) {
+      latitude = position.coords.latitude;
+      longitude = position.coords.longitude;
+
+      document.getElementById("location").innerText = 
+        `Latitude: ${latitude.toFixed(6)}\nLongitude: ${longitude.toFixed(6)}`;
+      document.getElementById("copyBtn").style.display = "inline-block";
+      document.getElementById("shareBtn").style.display = "inline-block";
+      document.getElementById("googleEarthBtn").style.display = "inline-block";
+      document.getElementById("mapContainer").style.display = "block";
+      showMap(latitude, longitude);
+    }
+
+    function showError(error) {
+      let message = "";
+      switch(error.code) {
+        case error.PERMISSION_DENIED:
+          message = "Please allow location access.";
+          break;
+        case error.POSITION_UNAVAILABLE:
+          message = "Location information is unavailable.";
+          break;
+        case error.TIMEOUT:
+          message = "The request to get location timed out.";
+          break;
+        default:
+          message = "An unknown error occurred.";
+          break;
+      }
+      alert(message);
+      document.getElementById("location").innerText = message;
+      document.getElementById("copyBtn").style.display = "none";
+      document.getElementById("shareBtn").style.display = "none";
+      document.getElementById("googleEarthBtn").style.display = "none";
+      document.getElementById("mapContainer").style.display = "none";
+    }
+
+    function copyCoords() {
+      const coords = `Latitude: ${latitude}\nLongitude: ${longitude}`;
+      navigator.clipboard.writeText(coords).then(() => {
+        document.getElementById("copySuccess").innerText = "Copied!";
+        setTimeout(() => document.getElementById("copySuccess").innerText = "", 1800);
+      });
+    }
+
+    function shareLocation() {
+      const message = `My current location:\nLatitude: ${latitude}\nLongitude: ${longitude}`;
+      const phone = "7611132681"; // Replace with your WhatsApp number
+      const link = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+      window.open(link, "_blank");
+    }
+
+    function openGoogleEarth() {
+      const url = `https://earth.google.com/web/@${latitude},${longitude},1000a,0h,0p,0r`;
+      window.open(url, "_blank");
+    }
+
+    function showMap(lat, lng) {
+      if (!map) {
+        map = L.map('map').setView([lat, lng], 16);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '© OpenStreetMap'
+        }).addTo(map);
+        marker = L.marker([lat, lng]).addTo(map);
+      } else {
+        map.setView([lat, lng], 16);
+        marker.setLatLng([lat, lng]);
+      }
+    }
+  </script>
+</body>
+</html>
